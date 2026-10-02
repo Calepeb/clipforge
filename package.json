@@ -1,7 +1,7 @@
 {
   "name": "clipforge",
   "productName": "ClipForge",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Turn long videos into viral-ready vertical clips with automatic captions.",
   "main": "dist-electron/main.js",
