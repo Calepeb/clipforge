@@ -1,0 +1,89 @@
+# Builds the Windows and macOS installers on GitHub's machines and publishes them as one
+# GitHub release. Trigger: push a tag that matches package.json's version, e.g.
+#   git tag v0.3.0 && git push origin v0.3.0
+# (or run it manually from the Actions tab). Installed Windows apps auto-update from it.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write # create the release and upload the installers
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            target: --win
+          - os: macos-latest # Apple Silicon
+            target: --mac
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the tag matches package.json
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          v="v$(node -p "require('./package.json').version")"
+          [ "$v" = "${GITHUB_REF_NAME}" ] || { echo "::error::Tag ${GITHUB_REF_NAME} doesn't match package.json version $v"; exit 1; }
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - run: npm ci
+
+      - name: FFmpeg (self-contained build to bundle)
+        shell: bash
+        run: |
+          npm install --no-save ffmpeg-static@5.3.0
+          ff="$(node -p "require('ffmpeg-static')")"
+          "$ff" -hide_banner -version | head -1
+          "$ff" -hide_banner -filters | grep -q ' ass ' || { echo "::error::This FFmpeg build lacks libass (burned-in captions)"; exit 1; }
+          echo "FFMPEG_PATH=$ff" >> "$GITHUB_ENV"
+          dirname "$ff" >> "$GITHUB_PATH"
+
+      - name: Caption fonts and sample video
+        run: |
+          npm run fetch:fonts
+          npm run mock:video
+
+      - name: Python backend
+        shell: bash
+        run: |
+          npm run setup:backend
+          if [ "$RUNNER_OS" = "Windows" ]; then py=backend/.venv/Scripts/python; else py=backend/.venv/bin/python; fi
+          "$py" -m pip install -r backend/requirements-build.txt
+
+      - name: Build app and frozen backend
+        run: |
+          npm run build
+          npm run build:backend
+          node scripts/copy-ffmpeg.mjs
+
+      - name: Package and upload to the draft release
+        run: npx electron-builder ${{ matrix.target }} --publish always
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "v$(node -p "require('./package.json').version")" --draft=false --latest

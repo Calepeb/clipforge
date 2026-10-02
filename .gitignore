@@ -1,0 +1,17 @@
+node_modules/
+dist/
+dist-electron/
+release/
+.env
+*.log
+public/mock/sample.mp4
+backend/.venv/
+__pycache__/
+*.pyc
+release/
+build/ffmpeg/
+backend/build/
+backend/dist/
+backend/.data/
+public/fonts/
+.claude/

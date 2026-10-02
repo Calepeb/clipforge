@@ -1,0 +1,40 @@
+# ClipForge virality scoring weights.
+#
+# Every feature is normalised to 0..1. Each [section] combines its features into one
+# signal; [signals] combines the signals into the final score. Weights are re-normalised
+# over the signals that are available (e.g. no Claude key -> "llm" is left out).
+# Edits apply on the next "Generate clips"; no restart needed.
+
+[signals]
+llm = 0.55      # Claude's reading of the transcript
+text = 0.15     # transcript heuristics (opening line, pace, punch, clean ending, length)
+audio = 0.20    # loudness spikes / lively delivery
+visual = 0.10   # scene cuts and on-screen motion
+
+[llm]
+virality = 0.50   # Claude's overall rating
+hook = 0.15
+opinion = 0.06
+humor = 0.08
+emotion = 0.08
+surprise = 0.07
+story = 0.06
+
+[text]
+hook = 0.30
+pace = 0.15
+punch = 0.10
+ending = 0.15
+length = 0.30     # closeness to the preferred clip length
+
+[audio]
+liveliness = 0.45
+spikes = 0.35
+opening = 0.20    # loud first 3 seconds
+
+[visual]
+cuts = 0.5
+motion = 0.5
+
+[length]
+target = 35       # preferred clip length in seconds (within the min/max chosen in the app)

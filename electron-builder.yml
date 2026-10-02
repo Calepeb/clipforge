@@ -1,0 +1,41 @@
+# Windows installer: npm run dist  (needs: npm run fetch:fonts, npm run setup:backend, FFmpeg on PATH)
+appId: com.clipforge.app
+productName: ClipForge
+directories:
+  output: release
+files:
+  - dist/**
+  - dist-electron/**
+  - package.json
+asar: true
+extraResources:
+  - from: backend/dist/clipforge-backend   # PyInstaller build (npm run build:backend)
+    to: backend
+  - from: build/ffmpeg                     # ffmpeg.exe + license (scripts/copy-ffmpeg.mjs)
+    to: ffmpeg
+  - from: public/fonts                     # caption fonts for libass
+    to: fonts
+win:
+  target: [{ target: nsis, arch: [x64] }]
+mac:
+  # Apple Silicon (M1 and newer). No Apple Developer certificate: the app is ad-hoc signed
+  # by scripts/adhoc-sign.cjs so it runs; users open it once via right-click → Open.
+  target: [{ target: dmg, arch: [arm64] }]
+  category: public.app-category.video
+  identity: null
+  hardenedRuntime: false
+afterSign: scripts/adhoc-sign.cjs
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+# Auto-updates (electron-updater) read releases from github.com/Calepeb/clipforge.
+# Releases are built by GitHub Actions (.github/workflows/release.yml): bump "version"
+# in package.json, commit, then push a matching tag (git tag v0.3.0 && git push origin v0.3.0).
+# The installed app checks for new releases on launch and every 6 hours.
+publish:
+  provider: github
+  owner: Calepeb
+  repo: clipforge
+  # CI uploads Windows and Mac builds to one draft, then publishes it (.github/workflows/release.yml).
+  releaseType: draft

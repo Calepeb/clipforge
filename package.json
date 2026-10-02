@@ -1,0 +1,42 @@
+{
+  "name": "clipforge",
+  "productName": "ClipForge",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Turn long videos into viral-ready vertical clips with automatic captions.",
+  "main": "dist-electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "dev:web": "vite --mode web",
+    "build": "tsc --noEmit && vite build",
+    "typecheck": "tsc --noEmit",
+    "mock:video": "node scripts/make-mock-video.mjs",
+    "setup:backend": "node scripts/setup-backend.mjs",
+    "fetch:fonts": "node scripts/fetch-fonts.mjs",
+    "build:backend": "node scripts/build-backend.mjs",
+    "dist": "npm run build && npm run build:backend && node scripts/copy-ffmpeg.mjs && electron-builder --win",
+    "release": "npm run build && npm run build:backend && node scripts/copy-ffmpeg.mjs && electron-builder --win --publish always"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "electron-updater": "^6.8.9",
+    "immer": "^11.1.18",
+    "lucide-react": "^1.49.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "electron": "^44.5.1",
+    "electron-builder": "^26.15.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.2",
+    "vite-plugin-electron": "^1.1.2"
+  }
+}

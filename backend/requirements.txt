@@ -1,0 +1,11 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.7
+python-dotenv>=1.0
+faster-whisper>=1.1
+anthropic>=0.60
+numpy>=1.26
+scenedetect>=0.6.4
+opencv-python-headless>=4.9
+fonttools>=4.50
+mediapipe>=0.10.14
